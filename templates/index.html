@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FJD IP证书获取系统</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* 主容器 */
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        /* 蓝色注释/说明文字 */
+        .blue-text {
+            color: #0066cc;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .blue-comment {
+            color: #0066cc;
+            font-style: italic;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        /* 下拉选择框样式 */
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:hover {
+            border-color: #0066cc;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        /* 按钮样式 */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 消息提示区域 */
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* 统计信息样式 */
+        .stats {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .stats-item {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        /* 下载链接样式 */
+        .download-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 24px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .download-link:hover {
+            background-color: #218838;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #0066cc;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题 -->
+        <h1>FJD IP证书获取系统</h1>
+        
+        <!-- 蓝色说明文字 -->
+        <p class="blue-text">
+            <!-- 这是一个注释：说明系统的用途 -->
+            请选择需要获取证书的公司名称，系统将自动筛选对应的清单和证书文件，并打包成压缩包供您下载。
+        </p>
+
+        <!-- 表单 -->
+        <form id="certForm">
+            <div class="form-group">
+                <label for="companySelect">选择公司：</label>
+                <select id="companySelect" name="company" required>
+                    <option value="">-- 请选择公司 --</option>
+                    <!-- 公司列表将通过JavaScript动态加载 -->
+                </select>
+                <p class="blue-comment"><!-- 提示：下拉框包含所有可用的公司名称，按字母顺序排列 --></p>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">
+                生成证书包
+            </button>
+        </form>
+
+        <!-- 加载动画 -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在处理中，请稍候...</p>
+        </div>
+
+        <!-- 消息提示区域 -->
+        <div class="message" id="message"></div>
+
+        <!-- 统计信息区域 -->
+        <div class="stats" id="stats" style="display: none;"></div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // 页面加载时初始化
+        // ============================================================================
+        
+        // 当页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载公司列表到下拉框
+            loadCompanies();
+            
+            // 绑定表单提交事件
+            document.getElementById('certForm').addEventListener('submit', handleSubmit);
+        });
+
+        // ============================================================================
+        // 加载公司列表
+        // ============================================================================
+        
+        /**
+         * 从服务器获取公司列表并填充到下拉框
+         */
+        function loadCompanies() {
+            // 发送GET请求到API接口
+            fetch('/api/companies')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 获取下拉框元素
+                        const select = document.getElementById('companySelect');
+                        
+                        // 清空现有选项（除了第一个提示选项）
+                        select.innerHTML = '<option value="">-- 请选择公司 --</option>';
+                        
+                        // 添加所有公司选项
+                        data.companies.forEach(company => {
+                            const option = document.createElement('option');
+                            option.value = company;
+                            option.textContent = company;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        showMessage('加载公司列表失败: ' + (data.error || '未知错误'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('加载公司列表时发生错误:', error);
+                    showMessage('加载公司列表失败，请刷新页面重试', 'error');
+                });
+        }
+
+        // ============================================================================
+        // 处理表单提交
+        // ============================================================================
+        
+        /**
+         * 处理表单提交事件
+         * @param {Event} event - 表单提交事件
+         */
+        function handleSubmit(event) {
+            // 阻止表单默认提交行为
+            event.preventDefault();
+            
+            // 获取选中的公司名称
+            const companySelect = document.getElementById('companySelect');
+            const companyName = companySelect.value.trim();
+            
+            // 验证是否选择了公司
+            if (!companyName) {
+                showMessage('请先选择一个公司', 'error');
+                return;
+            }
+            
+            // 显示加载动画，隐藏消息和统计信息
+            showLoading(true);
+            hideMessage();
+            hideStats();
+            
+            // 禁用提交按钮，防止重复提交
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            
+            // 发送POST请求到服务器
+            fetch('/api/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    company_name: companyName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 隐藏加载动画
+                showLoading(false);
+                // 启用提交按钮
+                submitBtn.disabled = false;
+                
+                if (data.success) {
+                    // 成功：显示成功消息和下载链接
+                    showMessage(data.message, 'success');
+                    
+                    // 显示统计信息
+                    if (data.stats) {
+                        showStats(data.stats);
+                    }
+                    
+                    // 显示下载链接
+                    if (data.download_url) {
+                        showDownloadLink(data.download_url);
+                    }
+                } else {
+                    // 失败：显示错误消息
+                    showMessage(data.message || '处理失败，请重试', 'error');
+                }
+            })
+            .catch(error => {
+                // 隐藏加载动画
+                showLoading(false);
+                // 启用提交按钮
+                submitBtn.disabled = false;
+                
+                console.error('请求失败:', error);
+                showMessage('网络错误，请检查连接后重试', 'error');
+            });
+        }
+
+        // ============================================================================
+        // UI辅助函数
+        // ============================================================================
+        
+        /**
+         * 显示/隐藏加载动画
+         * @param {boolean} show - 是否显示
+         */
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        /**
+         * 显示消息提示
+         * @param {string} text - 消息内容
+         * @param {string} type - 消息类型：'success', 'error', 'info'
+         */
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+        }
+
+        /**
+         * 隐藏消息提示
+         */
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+
+        /**
+         * 显示统计信息
+         * @param {Object} stats - 统计信息对象
+         */
+        function showStats(stats) {
+            const statsDiv = document.getElementById('stats');
+            let html = '<strong>处理结果：</strong><br>';
+            html += `<div class="stats-item">总记录数: ${stats.total_records || 0}</div>`;
+            html += `<div class="stats-item">匹配文件数: ${stats.matched_files || 0}</div>`;
+            if (stats.missing_files > 0) {
+                html += `<div class="stats-item" style="color: #dc3545;">缺失文件数: ${stats.missing_files}</div>`;
+            }
+            statsDiv.innerHTML = html;
+            statsDiv.style.display = 'block';
+        }
+
+        /**
+         * 隐藏统计信息
+         */
+        function hideStats() {
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        /**
+         * 显示下载链接
+         * @param {string} url - 下载链接URL
+         */
+        function showDownloadLink(url) {
+            // 移除旧的下载链接（如果存在）
+            const oldLink = document.getElementById('downloadLink');
+            if (oldLink) {
+                oldLink.remove();
+            }
+            
+            // 创建新的下载链接
+            const link = document.createElement('a');
+            link.id = 'downloadLink';
+            link.href = url;
+            link.className = 'download-link';
+            link.textContent = '📥 下载证书包';
+            link.download = true;
+            
+            // 将链接添加到消息区域后面
+            const messageDiv = document.getElementById('message');
+            messageDiv.parentNode.insertBefore(link, messageDiv.nextSibling);
+            
+            // 自动点击下载链接（可选，如果不想自动下载可以注释掉）
+            // link.click();
+        }
+    </script>
+</body>
+</html>
+
